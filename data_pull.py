@@ -60,4 +60,55 @@ def combine_years(urls):
     return(pd.concat(df_list))
 
 attendance_ten_years = combine_years(urls = url_list(2017))
+attendance_ten_years.index = range(len(attendance_ten_years))
+attendance_ten_years["Total Attendence"] = [x.replace('.', '') for x in 
+                    attendance_ten_years["Total Attendence"]]
+
+attendance_ten_years["Average Attendence"] = [x.replace('.', '') for x in 
+                    attendance_ten_years["Average Attendence"]]
+
+
+''' Ideas... Get the stadiums, match the stadiums with the teams  from 
+
+https://simple.wikipedia.org/wiki/List_of_English_football_stadiums_by_capacity 
+
+'''
+
+
+def stadium_capcity(wikipedia_url):
+    
+    try:
+        req = urllib.request.Request(wikipedia_url, None, headers)
+        r = urllib.request.urlopen(req).read()
+        
+        soup = BeautifulSoup(r)
+    
+        rows = soup.find("table", attrs = {'class': 'wikitable sortable'})
+        data = []
+        for row in rows:
+            try: 
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+                data.append([ele for ele in cols if ele])
+            except AttributeError:
+                pass            
+        data = pd.DataFrame(data)
+        return(data)
+    except: return("Error please check url")
+
+stadiums = stadium_capcity("https://simple.wikipedia.org/wiki/List_of_English_football_stadiums_by_capacity")
+    
+stadiums.columns = ["Overall Rank", "Stadium", "Town/City", "Capacity" , "Club", 
+                           "League (Tier)", "Rank Within League", "Notes"]
+
+def clean_capacity(df): 
+    try:
+        if int(df.Capacity[20]) >= 0:
+            return(df.Capacity[20:26])
+        else: 
+            return(df.Capacity)
+    except: return(df.Capacity)
+stadiums['Clean Capacity'] = stadiums.apply(clean_capacity, axis =1)
+
+
 
