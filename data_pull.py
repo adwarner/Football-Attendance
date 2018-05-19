@@ -143,10 +143,28 @@ def MLS_2017(base_url):
                 data.append([ele for ele in cols])
         data = pd.DataFrame(data)
         data = data.drop([3, 6, 7],axis= 1)
-#        data = data.drop([])
         data.columns = ['Date', 'Time', 'Home Team', 'Away Team', 'Score']
-        data = data.drop([0], axis = 0)
-#        
+        data = data.drop([0], axis = 0)        
         return(data)
+    
     except:
         return('Something went wrong please check the url')
+    
+### Date_extension ### 
+MLS = MLS_2017('http://www.worldfootball.net/all_matches/usa-major-league-soccer-2017/')
+
+MLS['Date'] = pd.to_datetime(MLS['Date'])
+j = pd.to_datetime(MLS['Date'])[1]
+date = []
+for i in pd.to_datetime(MLS['Date']):
+    if pd.isnull(i): 
+        date.append(j)
+    else: 
+        date.append(i)
+        j = i
+MLS['Date'] = date
+
+
+
+    
+    
