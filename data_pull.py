@@ -110,5 +110,43 @@ def clean_capacity(df):
     except: return(df.Capacity)
 stadiums['Clean Capacity'] = stadiums.apply(clean_capacity, axis =1)
 
+Premier_League = stadiums[stadiums["League (Tier)"] == "Premier League"]
+Premier_League["Clean Capacity"] = [x.replace(',', '') for x in 
+                    Premier_League["Clean Capacity"]]
+
+Premier_League['Clean Capacity'] = Premier_League['Clean Capacity'].astype(int)
+
+Premier_League['Clean Capacity'].describe()
 
 
+## Alright well this is cool, but what about the best league in world... the MLS #### 
+
+### Can we create some sort of visual that shows distance traveled and the result based on the color #### 
+### Does the distance away from home have an affect on the result??? #### 
+
+
+def MLS_2017(base_url):
+    ''' This function is going to attempt to retrieve a table and its results to get the 
+    attendance records for the proper season''' 
+    try:
+        req = urllib.request.Request(base_url, None, headers)
+        r = urllib.request.urlopen(req).read()
+        
+        soup = BeautifulSoup(r)
+        
+        
+        rows = soup.find("table",attrs={'class':'standard_tabelle'}).find_all('tr')
+        data = []
+        for row in rows:
+                cols = row.find_all('td')
+                cols = [ele.text for ele in cols]
+                data.append([ele for ele in cols])
+        data = pd.DataFrame(data)
+        data = data.drop([3, 6, 7],axis= 1)
+#        data = data.drop([])
+        data.columns = ['Date', 'Time', 'Home Team', 'Away Team', 'Score']
+        data = data.drop([0], axis = 0)
+#        
+        return(data)
+    except:
+        return('Something went wrong please check the url')
