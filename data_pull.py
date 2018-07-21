@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np 
 from bs4 import BeautifulSoup
 import urllib
+import seaborn as sns
 
 headers = { 'User-Agent' : 'Mozilla/5.0' }
 
@@ -125,7 +126,7 @@ Premier_League['Clean Capacity'].describe()
 ### Does the distance away from home have an affect on the result??? #### 
 
 
-def MLS_2017(base_url):
+def Schedule(base_url):
     ''' This function is going to attempt to retrieve a table and its results to get the 
     attendance records for the proper season''' 
     try:
@@ -151,18 +152,46 @@ def MLS_2017(base_url):
         return('Something went wrong please check the url')
     
 ### Date_extension ### 
-MLS = MLS_2017('http://www.worldfootball.net/all_matches/usa-major-league-soccer-2017/')
 
-MLS['Date'] = pd.to_datetime(MLS['Date'])
-j = pd.to_datetime(MLS['Date'])[1]
-date = []
-for i in pd.to_datetime(MLS['Date']):
-    if pd.isnull(i): 
-        date.append(j)
+def Clean_Data(Data): 
+    
+    Data['Date'] = pd.to_datetime(Data['Date'])
+    j = pd.to_datetime(Data['Date'])[1]
+    date = []
+    for i in pd.to_datetime(Data['Date']):
+        if pd.isnull(i): 
+            date.append(j)
+        else: 
+            date.append(i)
+            j = i
+    
+    Data['Date'] = date
+    Data = Data.drop(Data[pd.isnull(Data['Score'])].index, axis = 0)
+    Data["FT Score"] = [x.strip()[0:3] for x in Data["Score"]]
+    Data["HT Score"] = [x.strip()[5:8] for x in Data["Score"]]
+    
+    return(Data)
+
+MLS = Schedule('http://www.worldfootball.net/all_matches/usa-major-league-soccer-2017/')
+EPL = Schedule('http://www.worldfootball.net/all_matches/eng-premier-league-2017-2018/')
+
+MLS = Clean_Data(MLS)
+EPL = Clean_Data(EPL)
+
+def Count_Plot_HT_Scores(Data):
+ return(sns.countplot(x="HT Score", data=Data))
+
+def Count_Plot_FT_Scores(Data):
+ return(sns.countplot(x="FT Score", data=Data))
+
+def Team_Specific_HT_Score(Team, Data, Home):
+    if Home == "Yes":
+        return(sns.countplot("HT Score", data  = Data[Data['Home Team'] == Team]))
     else: 
-        date.append(i)
-        j = i
-MLS['Date'] = date
+        return(sns.countplot("HT Score", data  = Data[Data['Away Team'] == Team]))
+
+
+
 
 
 
